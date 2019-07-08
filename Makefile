@@ -5,7 +5,7 @@ reg-knn:
 	PYTHONPATH=./src python bin/detect_using_trained_model.py
 
 reg:
-	PYTHONPATH=./src python bin/detect_using_trained_model.py
+	PYTHONPATH=./src python bin/detect_using_input_image.py
 
 # Cleaning up the python compiled bytecodes
 clear-pyc:
