@@ -1,0 +1,10 @@
+click
+dlib
+face-recognition
+face-recognition-models
+numpy
+opencv-python
+Pillow
+scikit-learn
+scipy
+sklearn
