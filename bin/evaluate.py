@@ -12,19 +12,19 @@ def evaluate(evaluateDir, modelPath):
     right = 0
     wrong = 0
     # Loop through each person in the training set
-    for class_dir in os.listdir(evaluateDir):
-        if not os.path.isdir(os.path.join(evaluateDir, class_dir)):
+    for classDir in os.listdir(evaluateDir):
+        if not os.path.isdir(os.path.join(evaluateDir, classDir)):
             continue
         # Loop through each training image for the current person
-        for img_path in image_files_in_folder(
-            os.path.join(evaluateDir, class_dir)
+        for imgPath in image_files_in_folder(
+            os.path.join(evaluateDir, classDir)
         ):
-            faces = predict(img_path, model_path=modelPath)
+            faces = predict(imgPath, model_path=modelPath)
             if faces:
                 # There is only 1 face
                 face = faces[0]
                 face_name = face[0]
-                if face_name == class_dir:
+                if face_name == classDir:
                     right = right + 1
                 else:
                     wrong = wrong + 1
