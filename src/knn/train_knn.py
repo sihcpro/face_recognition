@@ -128,11 +128,11 @@ def predict(X_img_path, knn_clf=None, model_path=None, distance_threshold=0.3):
 
     # Use the KNN model to find the best matches for the test face
     closest_distances = knn_clf.kneighbors(faces_encodings, n_neighbors=10)
-    print(closest_distances)
+    # print(closest_distances)
     are_matches = [closest_distances[0][i][0] <=
                    distance_threshold for i in range(len(X_face_locations))]
-    print('are_matches %s' % are_matches)
-    print('closest_distances %s' % closest_distances[0][0][0])
+    # print('are_matches %s' % are_matches)
+    # print('closest_distances %s' % closest_distances[0][0][0])
     # Predict classes and remove classifications
     # that aren't within the threshold
     return [(pred, loc) if rec else ("unknown", loc) for pred, loc, rec in zip(

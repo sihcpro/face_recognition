@@ -7,9 +7,8 @@ reg-knn:
 reg:
 	PYTHONPATH=./src python bin/detect_using_input_image.py
 
-# Cleaning up the python compiled bytecodes
-clear-pyc:
-    find . | grep -E "(__pycache__|\.pyc|\.pyo$$)" | xargs rm -rf
+eval:
+	PYTHONPATH=./src python bin/evaluate.py
 
 setup:
 	pip install -r requirements.txt
