@@ -1,6 +1,6 @@
+from face_reg import logger
 import cv2
 import face_recognition
-import logging
 import pickle
 import time
 
@@ -17,11 +17,11 @@ numFrame = 0
 videoCapture = cv2.VideoCapture(videoPath)
 
 # load model KNN
-logging.info("Loading model ...")
+logger.info("Loading model ...")
 with open(modelPath, "rb") as f:
     knnClf = pickle.load(f)
-logging.info("Model is loaded")
-logging.info("Using model %s to detect face" % faceDetectionModel)
+logger.info("Model is loaded")
+logger.info("Using model %s to detect face" % faceDetectionModel)
 
 while True:
     ret, frame = videoCapture.read()
@@ -36,7 +36,7 @@ while True:
         faceLocations = face_recognition.face_locations(
             frame, model=faceDetectionModel)
         if len(faceLocations) == 0:
-            logging.info("No face is detected")
+            logger.info("No face is detected")
         else:
             faceEncodings = face_recognition.face_encodings(
                 frame, faceLocations, num_jitters=numJitters)
@@ -70,7 +70,7 @@ while True:
 
         # Display the resulting image
         cv2.imshow('Face Recognition', image)
-        logging.debug(time.time() - prev)
+        logger.debug(time.time() - prev)
     # Hit 'q' on the keyboard to quit!
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
