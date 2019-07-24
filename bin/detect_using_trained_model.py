@@ -9,7 +9,7 @@ import time
 videoPath = 0
 modelPath = "data/model/knn.clf"
 numJitters = 1
-faceDetectionModel = "hog"
+faceDetectionModel = ["hog", "cnn"]
 threshold = 0.3
 numFrame = 0
 
@@ -21,7 +21,7 @@ logger.info("Loading model ...")
 with open(modelPath, "rb") as f:
     knnClf = pickle.load(f)
 logger.info("Model is loaded")
-logger.info("Using model %s to detect face" % faceDetectionModel)
+logger.info("Using model %s to detect face" % str(faceDetectionModel))
 
 # Coefficient reduce size make algo faster
 resize_coef = 4
@@ -45,12 +45,23 @@ while True:
         frame = frame[:, :, ::-1]
         # Find all the faces and face encodings in the current frame of video
         faceLocations = face_recognition.face_locations(
-            frame, model=faceDetectionModel)
+            frame, model=faceDetectionModel[0])
         if len(faceLocations) == 0:
-            logger.info("No face is detected")
-        else:
+            faceLocations = face_recognition.face_locations(
+                frame, model=faceDetectionModel[1])
+            if len(faceLocations) == 0:
+                logger.info("No face is detected")
+
+        # logger.debug(faceLocations)
+        # break
+
+        faceLocations = [
+            tuple([location * resize_coef for location in faceLocation]) for faceLocation in faceLocations
+        ]
+
+        if len(faceLocations) > 0:
             faceEncodings = face_recognition.face_encodings(
-                frame, faceLocations, num_jitters=numJitters)
+                image, faceLocations, num_jitters=numJitters)
             closestDistances = knnClf.kneighbors(
                 faceEncodings, n_neighbors=1)
             matches = [closestDistances[0][i][0] <=
@@ -68,13 +79,11 @@ while True:
 
             # Display the results
             for name, (top, right, bottom, left) in predictions:
-                
-
                 # Draw a box around the face
                 cv2.rectangle(
                     image,
-                    (left * resize_coef, top * resize_coef),
-                    (right * resize_coef, bottom * resize_coef),
+                    (left, top),
+                    (right, bottom),
                     (0, 0, 255),
                     2
                 )
@@ -82,8 +91,8 @@ while True:
                 # Draw a label with a name below the face
                 cv2.rectangle(
                     image,
-                    (left * resize_coef, bottom * resize_coef - 35),
-                    (right * resize_coef, bottom * resize_coef),
+                    (left, bottom - 35),
+                    (right, bottom),
                     (0, 0, 255),
                     cv2.FILLED
                 )
@@ -91,7 +100,7 @@ while True:
                 cv2.putText(
                     image,
                     name,
-                    (left * resize_coef + 6, bottom * resize_coef - 6),
+                    (left + 6, bottom - 6),
                     font,
                     1.0,
                     (255, 255, 255),
