@@ -1,4 +1,5 @@
-import math
+from face_reg import logger
+# import math
 from sklearn import neighbors
 import os
 import os.path
@@ -6,6 +7,7 @@ import pickle
 from PIL import Image, ImageDraw
 import face_recognition
 from face_recognition.face_recognition_cli import image_files_in_folder
+
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
@@ -46,7 +48,7 @@ def train(
     X = []
     y = []
 
-    print("Detect and Encoding image....")
+    logger.info("Detect and Encoding image....")
     # Loop through each person in the training set
     for class_dir in os.listdir(train_dir):
         if not os.path.isdir(os.path.join(train_dir, class_dir)):
@@ -65,12 +67,12 @@ def train(
             else:
                 X.append(face_encodings[0])
                 y.append(class_dir)
-    print("Finished encoding ...")
+    logger.info("Finished encoding ...")
     # Determine how many neighbors to use for weighting in the KNN classifier
-    if n_neighbors is None:
-        n_neighbors = int(round(math.sqrt(len(X))))
+    if not n_neighbors:
+        n_neighbors = len(os.listdir(train_dir))
         if verbose:
-            print("Chose n_neighbors automatically:", n_neighbors)
+            logger.info("Chose n_neighbors automatically: %d" % n_neighbors)
 
     # Create and train the KNN classifier
     knn_clf = neighbors.KNeighborsClassifier(

@@ -2,10 +2,7 @@ import os
 import os.path
 from face_recognition.face_recognition_cli import image_files_in_folder
 from knn import predict
-import logging
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+from face_reg import logger
 
 
 def evaluate(evaluateDir, modelPath):
@@ -28,6 +25,19 @@ def evaluate(evaluateDir, modelPath):
                     right = right + 1
                 else:
                     wrong = wrong + 1
+                    distance_threshold = 0.3
+                    while faces[0][0] == "unknown":
+                        distance_threshold += 0.025
+                        faces = predict(
+                            imgPath,
+                            model_path=modelPath,
+                            distance_threshold=distance_threshold
+                        )
+                    logger.debug("Predict wrong: %s by %s, threshold = %s" % (
+                        classDir,
+                        faces[0][0],
+                        str(round(distance_threshold, 3)))
+                    )
     return right / (right + wrong) * 100
 
 

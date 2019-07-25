@@ -1,4 +1,4 @@
-from algo.rotate import rotate
+from algo import img_rotate
 from face_reg import logger
 import cv2
 import face_recognition
@@ -43,12 +43,12 @@ while True:
     numFrame += 1
     prev = time.time()
     if numFrame > 1:
-        faceLocations = rotate(frame, model=faceDetectionModel[0])
-        if len(faceLocations) == 0:
-            faceLocations = rotate(
-                frame, model=faceDetectionModel[1])
-            if len(faceLocations) == 0:
-                logger.info("No face is detected")
+        faceLocations = img_rotate.rotate(
+            frame, model=faceDetectionModel[0], rotate_time=0)
+        # if len(faceLocations) == 0:
+        #     faceLocations = rotate(frame, model=faceDetectionModel[1])
+        #     if len(faceLocations) == 0:
+        #         logger.info("No face is detected")
 
         # logger.debug(faceLocations)
         # break
@@ -74,6 +74,11 @@ while True:
                     matches
                 )
             ]
+
+            for name, (top, right, bottom, left) in predictions:
+                if name != 'unknown':
+                    face = image[top:bottom, left:right]
+                    cv2.imshow("face", face)
 
             # Display the results
             for name, (top, right, bottom, left) in predictions:

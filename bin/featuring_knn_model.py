@@ -5,7 +5,7 @@ if __name__ == "__main__":
     classifier = train(
         "data/train",
         model_save_path="data/model/knn.clf",
-        n_neighbors=4)
+        verbose=True)
     # TODO: set n_neighbors dynamicaly to the number of people
     print("Training complete!")
 
