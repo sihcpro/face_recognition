@@ -1,3 +1,4 @@
+from algo.rotate import rotate
 from face_reg import logger
 import cv2
 import face_recognition
@@ -42,12 +43,9 @@ while True:
     numFrame += 1
     prev = time.time()
     if numFrame > 1:
-        frame = frame[:, :, ::-1]
-        # Find all the faces and face encodings in the current frame of video
-        faceLocations = face_recognition.face_locations(
-            frame, model=faceDetectionModel[0])
+        faceLocations = rotate(frame, model=faceDetectionModel[0])
         if len(faceLocations) == 0:
-            faceLocations = face_recognition.face_locations(
+            faceLocations = rotate(
                 frame, model=faceDetectionModel[1])
             if len(faceLocations) == 0:
                 logger.info("No face is detected")
