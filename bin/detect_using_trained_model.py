@@ -1,5 +1,8 @@
-from algo import img_rotate
+from algo import img_rotate, nearest_face
 from face_reg import logger
+from face_reg.face import Face
+from config.default import MODEL_PATH, DATA_TRAIN_PATH, DATA_TMP_PATH
+import os
 import cv2
 import face_recognition
 import pickle
@@ -8,10 +11,10 @@ import time
 
 # Get a reference to webcam #0 (the default one)
 videoPath = 0
-modelPath = "data/model/knn.clf"
+modelPath = MODEL_PATH
 numJitters = 1
 faceDetectionModel = ["hog", "cnn"]
-threshold = 0.3
+threshold = 0.35
 numFrame = 0
 
 # load video
@@ -27,17 +30,35 @@ logger.info("Using model %s to detect face" % str(faceDetectionModel))
 # Coefficient reduce size make algo faster
 resize_coef = 4
 
-while True:
-    ret, frame = videoCapture.read()
-    if not ret:
-        break
-    frame = frame[:, ::-1, :]
-    image = frame.copy()
-
-    # Reduce frame size
+ret, frame = videoCapture.read()
+if not ret:
+    "Not found camera!"
+else:
     old_frame_shape = frame.shape[:2][::-1]
     new_frame_shape = tuple([i // resize_coef for i in old_frame_shape])
     logger.debug("Resize : %s -> %s" % (old_frame_shape, new_frame_shape))
+
+recog_faces = {}
+should_save = False
+for face_name in os.listdir(DATA_TRAIN_PATH):
+    recog_faces[face_name] = Face(face_name)
+    tmp_each_face = os.path.join(DATA_TMP_PATH, face_name)
+    if not os.path.exists(tmp_each_face):
+        os.makedirs(tmp_each_face)
+
+cnt = 0
+max_duration = 0
+min_duration = 100
+avg_duration = 0
+frequency = 100
+while True:
+    cnt += 1
+    ret, frame = videoCapture.read()
+    if not ret:
+        break
+    image = frame.copy()
+
+    # Reduce frame size
     frame = cv2.resize(frame, new_frame_shape)
 
     numFrame += 1
@@ -50,9 +71,7 @@ while True:
         #     if len(faceLocations) == 0:
         #         logger.info("No face is detected")
 
-        # logger.debug(faceLocations)
-        # break
-
+        # Reverse face location because of resize
         faceLocations = [
             tuple([location * resize_coef for location in faceLocation]) for faceLocation in faceLocations
         ]
@@ -75,10 +94,39 @@ while True:
                 )
             ]
 
+            # Consider all faces that recognized
             for name, (top, right, bottom, left) in predictions:
                 if name != 'unknown':
+                    recog_faces[name].recognize(
+                        cnt,
+                        (top, right, bottom, left)
+                    )
                     face = image[top:bottom, left:right]
-                    cv2.imshow("face", face)
+
+            # Look around list faces and consider should save a new face
+            for name in recog_faces:
+                face = recog_faces[name]
+                if should_save and face.should_save():
+                    logger.debug("should save: %s" % name)
+                    guest_face = nearest_face.find(
+                        face.last_locat, predictions)
+                    if guest_face:
+                        get_face = Face.get_face(image, guest_face[0][1])
+                        cv2.imshow("face %s" % name, get_face)
+                        Face.save(
+                            image=get_face,
+                            path=os.path.join(DATA_TMP_PATH, face.name)
+                        )
+                        logger.info("save %s" % face.name)
+                        new_face = face_recognition.face_encodings(
+                            get_face, num_jitters=1)
+                        if new_face:
+                            X = [new_face[0]]
+                            y = [face.name]
+                            # logger.debug(X)
+                            # logger.debug(y)
+                            # knnClf.fit(X, y)
+                face.update()
 
             # Display the results
             for name, (top, right, bottom, left) in predictions:
@@ -112,7 +160,19 @@ while True:
 
         # Display the resulting image
         cv2.imshow('Face Recognition', image)
-        logger.debug(time.time() - prev)
+    duration = time.time() - prev
+    max_duration = max(max_duration, duration)
+    min_duration = min(min_duration, duration)
+    avg_duration += duration
+    if cnt % frequency == 0:
+        logger.info("max: %fs | min: %fs | avg: %fs" % (
+            round(max_duration, 4),
+            round(min_duration, 4),
+            round(avg_duration / frequency, 4)))
+        min_duration = 100
+        max_duration = 0
+        avg_duration = 0
+
     # Hit 'q' on the keyboard to quit!
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break

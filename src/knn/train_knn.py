@@ -17,7 +17,8 @@ def train(
         model_save_path=None,
         n_neighbors=None,
         knn_algo='ball_tree',
-        verbose=False):
+        verbose=False,
+        min_image_each=5):
     """
     Trains a k-nearest neighbors classifier for face recognition.
 
@@ -50,14 +51,20 @@ def train(
 
     logger.info("Detect and Encoding image....")
     # Loop through each person in the training set
+    accept_faces = []
     for class_dir in os.listdir(train_dir):
-        if not os.path.isdir(os.path.join(train_dir, class_dir)):
+        user_dir = os.path.join(train_dir, class_dir)
+        if not os.path.isdir(user_dir):
             continue
+        image_faces = image_files_in_folder(user_dir)
 
+        if len(image_faces) < min_image_each:
+            continue
+        else:
+            logger.info("Train face for: %s" % class_dir)
+            accept_faces.append(class_dir)
         # Loop through each training image for the current person
-        for img_path in image_files_in_folder(
-            os.path.join(train_dir, class_dir)
-        ):
+        for img_path in image_faces:
             image = face_recognition.load_image_file(img_path)
             # Add face encoding for current image to the training set
             face_encodings = face_recognition.face_encodings(
@@ -70,7 +77,7 @@ def train(
     logger.info("Finished encoding ...")
     # Determine how many neighbors to use for weighting in the KNN classifier
     if not n_neighbors:
-        n_neighbors = len(os.listdir(train_dir))
+        n_neighbors = len(accept_faces)
         if verbose:
             logger.info("Chose n_neighbors automatically: %d" % n_neighbors)
 

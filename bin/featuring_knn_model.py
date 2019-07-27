@@ -1,10 +1,11 @@
+from config.default import DATA_TRAIN_PATH, MODEL_PATH
 from knn import train
 
 if __name__ == "__main__":
     print("Training KNN classifier...")
     classifier = train(
-        "data/train",
-        model_save_path="data/model/knn.clf",
+        DATA_TRAIN_PATH,
+        model_save_path=MODEL_PATH,
         verbose=True)
     # TODO: set n_neighbors dynamicaly to the number of people
     print("Training complete!")

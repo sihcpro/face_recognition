@@ -3,6 +3,7 @@ import os.path
 from face_recognition.face_recognition_cli import image_files_in_folder
 from knn import predict
 from face_reg import logger
+from config.default import MODEL_PATH
 
 
 def evaluate(evaluateDir, modelPath):
@@ -42,5 +43,4 @@ def evaluate(evaluateDir, modelPath):
 
 
 if __name__ == '__main__':
-    modelPath = "data/model/knn.clf"
-    logger.warning("Accuracy: %s" % evaluate('data/test', modelPath))
+    logger.warning("Accuracy: %s" % evaluate('data/test', MODEL_PATH))
