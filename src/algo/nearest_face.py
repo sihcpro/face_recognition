@@ -24,7 +24,7 @@ def max_allow_distance(first_location, threshold):
     ) * threshold / 2
 
 
-def find(last_location, new_face_locations, threshold=0.3):
+def find(last_location, new_face_locations, threshold=0.2):
     if not last_location:
         return None
     face_center = get_image_center(last_location)

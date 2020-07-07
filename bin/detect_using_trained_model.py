@@ -1,4 +1,4 @@
-from algo import img_rotate, nearest_face
+from algo import img_rotate, nearest_face, img_quality
 from face_reg import logger
 from face_reg.face import Face
 from config.default import MODEL_PATH, DATA_TRAIN_PATH, DATA_TMP_PATH
@@ -39,7 +39,7 @@ else:
     logger.debug("Resize : %s -> %s" % (old_frame_shape, new_frame_shape))
 
 recog_faces = {}
-should_save = False
+should_save = True
 for face_name in os.listdir(DATA_TRAIN_PATH):
     recog_faces[face_name] = Face(face_name)
     tmp_each_face = os.path.join(DATA_TMP_PATH, face_name)
@@ -112,20 +112,25 @@ while True:
                         face.last_locat, predictions)
                     if guest_face:
                         get_face = Face.get_face(image, guest_face[0][1])
-                        cv2.imshow("face %s" % name, get_face)
-                        Face.save(
-                            image=get_face,
-                            path=os.path.join(DATA_TMP_PATH, face.name)
-                        )
-                        logger.info("save %s" % face.name)
-                        new_face = face_recognition.face_encodings(
-                            get_face, num_jitters=1)
-                        if new_face:
-                            X = [new_face[0]]
-                            y = [face.name]
-                            # logger.debug(X)
-                            # logger.debug(y)
-                            # knnClf.fit(X, y)
+                        if img_quality.blur_detection(get_face) > 130:
+                            cv2.imshow("face %s" % name, get_face)
+                            logger.info("%s face blur: %s" % (
+                                face.name,
+                                str(img_quality.blur_detection(get_face)))
+                            )
+                            # Face.save(
+                            #     image=get_face,
+                            #     path=os.path.join(DATA_TMP_PATH, face.name)
+                            # )
+                            # logger.info("save %s" % face.name)
+                            # new_face = face_recognition.face_encodings(
+                            #     get_face, num_jitters=1)
+                            # if new_face:
+                            #     X = [new_face[0]]
+                            #     y = [face.name]
+                            #     logger.debug(X)
+                            #     logger.debug(y)
+                            #     knnClf.fit(X, y)
                 face.update()
 
             # Display the results

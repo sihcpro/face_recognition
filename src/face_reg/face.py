@@ -12,6 +12,7 @@ class Face:
         self.last_recog = -1
         self.is_recognized = False
         self.last_locat = ()
+        self.last_image = None
 
     def recognize(self, last_reconition, last_location):
         self.last_recog = last_reconition
@@ -32,15 +33,15 @@ class Face:
             (not self.is_recognized) and self.recog_time == Face.max_recog_time
         )
 
-    def save(image, path, location=None):
+    def save(self, image, path, location=None):
+        self.last_image = image
         if location:
             image = Face.get_face(image, location)
         time_info = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        cv2.imwrite(
-            os.path.join(path, time_info) + ".png",
-            image
-        )
-        cv2.waitKey(1)
+        # cv2.imwrite(
+        #     os.path.join(path, time_info) + ".png",
+        #     image
+        # )
 
     def get_face(image, location):
         return image[location[0]:location[2],
